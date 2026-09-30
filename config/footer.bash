@@ -17,6 +17,11 @@ function _quit() { # pseudo-private
     exit 0;
 }
 
+function _invalid_option() { # pseudo-private
+    local option="${1}"
+    echo -e "${RED}Error.${RESET} Invalid option: ${GREEN}${option}${RESET}.\n"
+}
+
 function _menu() { # pseudo-private
     shopt -s lastpipe
     local COMMANDS=()
@@ -26,26 +31,41 @@ function _menu() { # pseudo-private
         echo -e "\n${BOLD}Available commands:${RESET}\n"
         local quitPrinted=no
         local i=1
+        local minOption=0
+        local maxOption=0
         cat `basename ${0}` | grep -v '^function\s_' | grep '()\s{' | \
         while read functionName ; do
             local command=${functionName%%()*}
             if [[ "${command}" == 'quit' ]]; then
-                echo -e " ${RED}q)${RESET} ${ITALIC}quit${RESET}"
+                echo -e " ${BLUE}q)${RESET} ${ITALIC}quit${RESET}"
                 quitPrinted=true
             else
+                if (( i == 1 )) ; then
+                    minOption=1
+                fi
                 echo -e " ${GREEN}${i})${RESET} ${command}"
                 COMMANDS[${i}]=${command}
                 ((i++))
             fi
         done
+        ((i--))
+        maxOption=${i}
         if [[ "${quitPrinted}" == 'no' ]]; then
-            echo -e " ${RED}q)${RESET} ${ITALIC}quit${RESET}"
+            echo -e " ${BLUE}q)${RESET} ${ITALIC}quit${RESET}"
         fi
         echo ; echo -n ': ' ; read -e options ; echo
         for option in ${options} ; do
             local commandToRun=''
-            if [[ ${option} =~ ^[0-9]+$ ]]; then
-                commandToRun=${COMMANDS[option]}
+            if [[ "${option}" =~ ^[0-9]+$ ]]; then
+                if (( option < minOption || option > maxOption)) ; then
+                    commandToRun=''
+                    _invalid_option "${option}"
+                else
+                    commandToRun=${COMMANDS[option]}
+                fi
+            elif [[ "${option}" == -* ]]; then
+                commandToRun=''
+                _invalid_option "${option}"
             else
                 if [[ "${option,,}" == 'q' ]]; then
                     commandToRun='_quit'
@@ -53,7 +73,9 @@ function _menu() { # pseudo-private
                     commandToRun=${option}
                 fi
             fi
-            "${commandToRun}" ; echo ; echo
+            if [[ "${commandToRun}" != "" ]] ; then
+                "${commandToRun}" ; echo ; echo
+            fi
         done
     done
 }

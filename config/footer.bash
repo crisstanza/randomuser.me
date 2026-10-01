@@ -19,28 +19,57 @@ MAX_OPTION=0
 
 function _init_commands() { # pseudo-private
     shopt -s lastpipe
-    local i=1
+    local I=1
     cat `basename ${0}` | grep -v '^function\s_' | grep '()\s{' | \
     while read functionName ; do
         local command=${functionName%%()*}
-        if [[ "${command}" != 'quit' ]]; then
-            if (( i == 1 )) ; then
+        if [[ "${command}" != 'quit' ]] ; then
+            if (( I == 1 )) ; then
                 MIN_OPTION=1
             fi
-            COMMANDS[${i}]=${command}
-            (( i++ ))
+            COMMANDS[${I}]=${command}
+            (( I++ ))
         fi
     done
-    (( MAX_OPTION = i - 1 ))
+    (( MAX_OPTION = I - 1 ))
 }
 
 function _quit() { # pseudo-private
     exit 0;
 }
 
+function _validate_option() {
+    local CANDIDATE="${1}"
+    if (( CANDIDATE > MAX_OPTION || CANDIDATE < MIN_OPTION )) ; then
+        echo 0
+    else
+        echo 1
+    fi
+}
+
+function _validate_command() {
+    local CANDIDATE="${1}"
+    if [[ "${CANDIDATE}" == 'clear' ]] ; then
+        echo 1
+        return
+    fi
+    for command in ${COMMANDS[*]} ; do
+        if [[ "${command}" == "${CANDIDATE}" ]] ; then
+            echo 1
+            return
+        fi
+    done
+    echo 0
+}
+
 function _invalid_option() { # pseudo-private
-    local option="${1}"
-    echo -e "${RED}[ERROR]${RESET} Invalid option: ${GREEN}${option}${RESET}.\n"
+    local OPTION="${1}"
+    echo -e "${RED}[ERROR]${RESET} Invalid option: ${GREEN}${OPTION}${RESET}.\n"
+}
+
+function _invalid_command() { # pseudo-private
+    local OPTION="${1}"
+    echo -e "${RED}[ERROR]${RESET} Invalid command: ${GREEN}${OPTION}${RESET}.\n"
 }
 
 function _print_quit() { # pseudo-private
@@ -52,28 +81,33 @@ function _print_environment() { # pseudo-private
 }
 
 function _run_commands() { # pseudo-private
-    local options="${@}"
-    for option in ${options} ; do
-        local commandToRun=''
-        if [[ "${option}" =~ ^[0-9]+$ ]]; then
-            if (( MIN_OPTION != 0 && MAX_OPTION != 0 && (option < MIN_OPTION || option > MAX_OPTION) )) ; then
-                commandToRun=''
-                _invalid_option "${option}"
+    local INPUTS="${@}"
+    for input in ${INPUTS} ; do
+        local COMMAND_TO_RUN=''
+        if [[ "${input}" =~ ^[0-9]+$ ]] ; then
+            local IS_VALID_OPTION=`_validate_option "${input}"`
+            if (( ${IS_VALID_OPTION} == 1 )) ; then
+                COMMAND_TO_RUN=${COMMANDS[input]}
             else
-                commandToRun=${COMMANDS[option]}
+                _invalid_option "${input}"
             fi
-        elif [[ "${option}" == -* ]]; then
-            commandToRun=''
-            _invalid_option "${option}"
+        elif [[ "${input}" == -* ]] ; then
+            _invalid_option "${input}"
         else
-            if [[ "${option,,}" == 'q' ]]; then
-                commandToRun='_quit'
+            if [[ "${input,,}" == 'q' ]] ; then
+                COMMAND_TO_RUN='_quit'
             else
-                commandToRun=${option}
+                local IS_VALID_COMMAND=`_validate_command "${input}"`
+                if (( ${IS_VALID_COMMAND} == 1 )) ; then
+                    COMMAND_TO_RUN=${input}
+                else
+                    _invalid_command "${input}"
+                fi
             fi
         fi
-        if [[ "${commandToRun}" != "" ]] ; then
-            "${commandToRun}" ; echo ; echo
+        if [[ "${COMMAND_TO_RUN}" != "" ]] ; then
+            "${COMMAND_TO_RUN}"
+            echo
         fi
     done
 }
@@ -83,18 +117,18 @@ function _menu() { # pseudo-private
         echo -ne ${CYAN}
         printf '%*s\n' "$(tput cols)" '' | tr ' ' _ ; echo -ne ${RESET}
         echo -e "\n${BOLD}Available commands:${RESET}\n"
-        local quitPrinted=no
-        local i=1
+        local IS_QUIT_PRINTED=0
+        local I=1
         for command in ${COMMANDS[*]} ; do
-            if [[ "${command}" == 'quit' ]]; then
+            if [[ "${command}" == 'quit' ]] ; then
                 _print_quit
-                quitPrinted=true
+                IS_QUIT_PRINTED=1
             else
-                echo -e " ${GREEN}${i})${RESET} ${command}"
-                (( i++ ))
+                echo -e " ${GREEN}${I})${RESET} ${command}"
+                (( I++ ))
             fi
         done
-        if [[ "${quitPrinted}" == 'no' ]]; then
+        if (( ${IS_QUIT_PRINTED} == 0 )) ; then
             _print_quit
         fi
         echo ; echo -n ': ' ; read -e options ; echo

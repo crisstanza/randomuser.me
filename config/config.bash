@@ -1,5 +1,6 @@
-ENV=randomuser
 # ENV=local
+ENV=randomuser
+# ENV=other
 
 ##
 # To use json formatted output you need to install "jq": choco install jq
@@ -12,6 +13,9 @@ if [[ "${ENV}" == 'local' ]] ; then
 
 elif [[ "${ENV}" == 'randomuser' ]] ; then
     HOST=https://randomuser.me
+
+elif [[ "${ENV}" == 'other' ]] ; then
+    HOST=???
 
 else
     echo -e "\n[ERROR] Invalid ENV=${ENV}.\n"

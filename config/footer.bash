@@ -94,7 +94,7 @@ function _run_commands() { # pseudo-private
         elif [[ "${input}" == -* ]] ; then
             _invalid_option "${input}"
         else
-            if [[ "${input,,}" == 'q' ]] ; then
+            if [[ "${input,,}" == 'q' || "${input,,}" == 'quit' ]] ; then
                 COMMAND_TO_RUN='_quit'
             else
                 local IS_VALID_COMMAND=`_validate_command "${input}"`

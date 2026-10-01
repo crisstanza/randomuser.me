@@ -40,11 +40,15 @@ function _quit() { # pseudo-private
 
 function _invalid_option() { # pseudo-private
     local option="${1}"
-    echo -e "${RED}Error.${RESET} Invalid option: ${GREEN}${option}${RESET}.\n"
+    echo -e "${RED}[ERROR]${RESET} Invalid option: ${GREEN}${option}${RESET}.\n"
 }
 
 function _print_quit() { # pseudo-private
     echo -e " ${BLUE}q)${RESET} ${ITALIC}quit${RESET}"
+}
+
+function _print_environment() { # pseudo-private
+    echo -e "${BLUE}[INFO]${RESET} Environment: ${GREEN}${BOLD}${ENV}${RESET}.\n"
 }
 
 function _run_commands() { # pseudo-private
@@ -101,7 +105,8 @@ function _menu() { # pseudo-private
 function _main() { # pseudo-private
     _init_commands
     if [ ${#} -eq 0 ] ; then
-        echo -e "${BOLD}Usage:${RESET} ${0} [COMMANDS]\n"
+        echo -e "\n${BOLD}Usage:${RESET} ${0} [COMMANDS]\n"
+        _print_environment
         _menu
     else
         _run_commands "${@}"

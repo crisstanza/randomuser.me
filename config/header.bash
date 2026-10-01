@@ -1,8 +1,6 @@
 . ./config/config.bash
 ######################
 
-echo -e "\n[INFO] Environment: ${ENV}.\n"
-
 function delete() {
 	request -X 'DELETE' "$@"
 }

@@ -22,6 +22,10 @@ function _invalid_option() { # pseudo-private
     echo -e "${RED}Error.${RESET} Invalid option: ${GREEN}${option}${RESET}.\n"
 }
 
+function _print_quit() { # pseudo-private
+    echo -e " ${BLUE}q)${RESET} ${ITALIC}quit${RESET}"
+}
+
 function _menu() { # pseudo-private
     shopt -s lastpipe
     local COMMANDS=()
@@ -37,7 +41,7 @@ function _menu() { # pseudo-private
         while read functionName ; do
             local command=${functionName%%()*}
             if [[ "${command}" == 'quit' ]]; then
-                echo -e " ${BLUE}q)${RESET} ${ITALIC}quit${RESET}"
+                _print_quit
                 quitPrinted=true
             else
                 if (( i == 1 )) ; then
@@ -51,7 +55,7 @@ function _menu() { # pseudo-private
         ((i--))
         maxOption=${i}
         if [[ "${quitPrinted}" == 'no' ]]; then
-            echo -e " ${BLUE}q)${RESET} ${ITALIC}quit${RESET}"
+            _print_quit
         fi
         echo ; echo -n ': ' ; read -e options ; echo
         for option in ${options} ; do
@@ -82,7 +86,7 @@ function _menu() { # pseudo-private
 
 function _main() { # pseudo-private
     if [ ${#} -eq 0 ] ; then
-        echo -e "\nUsage: ${0} [COMMANDS]\n" ; _menu
+        echo -e "${BOLD}Usage:${RESET} ${0} [COMMANDS]\n" ; _menu
     else
         for COMMAND in "${@}" ; do "${COMMAND}" ; echo ; done
     fi

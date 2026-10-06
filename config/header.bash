@@ -32,8 +32,8 @@ function put() {
 ####################
 function request() {
 	if [[ "${JSON}" == 'yes' ]] ; then
-		curl -s -S -w "%{response_code}" "$@" | jq .
+		curl -s -S -w "%{response_code} %{time_total}" "$@" | jq .
 	else
-		curl -s -S -w "\n\nStatus: %{response_code}\n" "$@"
+		curl -s -S -w "\n\nStatus: %{response_code}\nTime: %{time_total}\n" "$@"
 	fi
 }

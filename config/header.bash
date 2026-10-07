@@ -29,7 +29,11 @@ function put() {
 	request -X 'PUT' "$@"
 }
 
-####################
+##########################################################
+# -S, --show-error         Show error even when -s is used
+# -s, --silent             Silent mode
+# -w, --write-out <format> Use output FORMAT after completion
+#
 function request() {
 	if [[ "${JSON}" == 'yes' ]] ; then
 		curl -s -S -w "%{response_code} %{time_total}" "$@" | jq .

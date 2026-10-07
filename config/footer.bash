@@ -22,12 +22,12 @@ function _init_commands() { # pseudo-private
     local I=1
     cat `basename ${0}` | grep -v '^function\s_' | grep '()\s{' | \
     while read functionName ; do
-        local command=${functionName%%()*}
-        if [[ "${command}" != 'quit' ]] ; then
+        local COMMAND=${functionName%%()*}
+        if [[ "${COMMAND}" != 'quit' ]] ; then
             if (( I == 1 )) ; then
                 MIN_OPTION=1
             fi
-            COMMANDS[${I}]=${command}
+            COMMANDS[${I}]=${COMMAND}
             (( I++ ))
         fi
     done

@@ -35,6 +35,9 @@ function put() {
 # -w, --write-out <format> Use output FORMAT after completion
 #
 function request() {
+    local METHOD="${2}"
+    local ENDPOINT="${3}"
+	echo -e "${METHOD} ${ITALIC}${ENDPOINT}${RESET}\n"
 	if [[ "${JSON}" == 'yes' ]] ; then
 		curl -s -S -w "%{response_code} %{time_total}" "$@" | jq .
 	else
